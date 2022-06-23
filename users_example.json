@@ -1,0 +1,6 @@
+{
+    "name_of_image_without_extension" : {
+        "name" : "Name_to_display_when_project_is_running",
+        "lvl" : 0 // Amount of priority(0 is more than 1)
+    }
+}

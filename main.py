@@ -2,6 +2,23 @@ import cv2
 import numpy as np
 import face_recognition
 import os
+from datetime import datetime
+import json
+  
+def read_file():
+    f = open('users.json')
+    users = json.load(f)
+    f.close()
+    return users
+
+def get_color_by_lvl(lvl):
+    if lvl == 1:
+        return (0, 255, 0)
+    elif lvl == 2:
+        return (255, 0, 0)
+    elif lvl == 0:
+        return (0, 0, 0)
+
 
 path = 'filteredPeople'
 images = []
@@ -28,13 +45,20 @@ print('Encoding Complete')
 
 cap = cv2.VideoCapture(0)
 
-def drawSquareOnFace(faceLoc, img, color, name):
+def drawSquareOnFace(faceLoc, img, color, name, lvl = -1):
     y1, x2, y2, x1 = faceLoc
     y1, x2, y2, x1 = y1 * 4, x2 * 4, y2 * 4, x1 * 4
 
     cv2.rectangle(img, (x1, y1), (x2, y2), color, 0)
     cv2.rectangle(img, (x1, y2 - 35), (x2, y2), color, cv2.FILLED)
     cv2.putText(img, name, (x1 + 6, y2 - 6), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
+
+    if lvl >= 0:
+        cv2.rectangle(img, (x1, y2 + 30), (x2, y2), color, cv2.FILLED)
+
+        display_level = f'Level: {lvl}'
+
+        cv2.putText(img, display_level, (x1 + 6, y2 + 25), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
 
 while True:
     success, img = cap.read()
@@ -51,15 +75,22 @@ while True:
         matchIndex = np.argmin(faceDis)
 
         if matches[matchIndex]:
-            name = classNames[matchIndex].upper()
-            color = (0, 255, 0)
-            drawSquareOnFace(faceLoc, img, color, name)
+            nameImg = classNames[matchIndex].upper()
+
+            actual_user = read_file()[nameImg]
+            user_name = actual_user["name"]
+            user_lvl = actual_user["lvl"]
+
+            color = get_color_by_lvl(user_lvl)
+
+            drawSquareOnFace(faceLoc, img, color, user_name, user_lvl)
         else:
             color = (0,0,255)
             name = '???'
             drawSquareOnFace(faceLoc, img, color, name)
         
 
-    cv2.imshow('Webcam', img)
-    cv2.waitKey(1)
-
+    cv2.imshow('Face recognition', img)
+    k = cv2.waitKey(1)
+    if k == ord('q'):
+        break
