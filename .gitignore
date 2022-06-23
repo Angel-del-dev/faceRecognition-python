@@ -1,3 +1,4 @@
 .idea
 blackList/*.jpg
 filteredPeople/*.jpg
+users.json
